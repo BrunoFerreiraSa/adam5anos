@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Adam!</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap');
+
+        body {
+            font-family: 'Comic Neue', cursive;
+            background: linear-gradient(135deg, #87CEEB, #E0F7FA);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px;
+            box-sizing: border-box;
+            overflow-x: hidden;
+            position: relative; /* Necessário para os números no fundo */
+        }
+
+        /* === NÚMEROS ANIMADOS NO FUNDO (0 a 100) === */
+        .floating-number {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            opacity: 0.12;
+            pointer-events: none;
+            z-index: 1;
+            user-select: none;
+            animation: float 5s infinite ease-in-out, fade 8s infinite;
+        }
+
+        .floating-number:nth-child(odd) {
+            animation: float 6s infinite ease-in-out, rotate 10s infinite linear;
+        }
+
+        .floating-number:nth-child(3n) {
+            animation: bounce 4s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(-40px) translateX(15px); }
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-25px); }
+        }
+
+        @keyframes fade {
+            0%, 100% { opacity: 0.12; }
+            50% { opacity: 0.18; }
+        }
+
+        /* Cores dos Numberblocks (1 a 9 + 0) */
+        .color-1 { color: #FF0000; }
+        .color-2 { color: #FFA500; }
+        .color-3 { color: #FFFF00; }
+        .color-4 { color: #008000; }
+        .color-5 { color: #1E90FF; }
+        .color-6 { color: #4B0082; }
+        .color-7 { color: #EE82EE; }
+        .color-8 { color: #FF1493; }
+        .color-9 { color: #A9A9A9; }
+        .color-0 { color: #FFFFFF; text-shadow: 0 0 5px #000; }
+
+        /* === SEU ESTILO ORIGINAL (inalterado) === */
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 100%;
+            width: 400px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        h2 {
+            color: #1e54e9;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            margin: 10px 0;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 14px;
+            margin: 12px 0;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: all 0.3s;
+        }
+
+        input {
+            border: 3px solid #1e54e9;
+            background: #fff5f5;
+            font-family: 'Comic Neue', cursive;
+        }
+
+        button {
+            background: linear-gradient(45deg, #1e54e9, #3d12fa);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(62, 22, 209, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(62, 22, 209, 0.6);
+        }
+
+        .question {
+            display: none;
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        .active {
+            display: block;
+        }
+
+        .options button {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            margin: 8px 0;
+            font-size: 16px;
+            padding: 12px;
+            border-radius: 15px;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(79, 172, 254, 0.4);
+        }
+
+        .options button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(79, 172, 254, 0.6);
+        }
+
+        .animation {
+            height: 60px;
+            margin: 15px 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .correct {
+            color: #2ecc71;
+            animation: bounceExplode 1s ease-out;
+        }
+
+        .incorrect {
+            color: #e74c3c;
+            animation: shakeExplode 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes bounceExplode {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shakeExplode {
+            0%, 100% { transform: translateX(0) scale(1); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-12px) scale(1.1); }
+            20%, 40%, 60%, 80% { transform: translateX(12px) scale(1.1); }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #f1c40f;
+            border-radius: 50%;
+            animation: confettiFall linear forwards;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(110vh) rotate(720deg);
+                opacity: 0;
+        }
+}
+
+        #result, #more-about {
+            display: none;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        .winner {
+            color: #2ecc71;
+            font-size: 24px;
+            text-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+        }
+
+        .loser {
+            color: #e74c3c;
+            font-size: 20px;
+        }
+
+        .stars {
+            font-size: 30px;
+            animation: twinkle 1.5s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- MÚSICA DE FUNDO -->
+    <audio id="bgMusic" loop>
+        <source src="ukulele.mp3" type="audio/mpeg">        
+    </audio>
+
+    <!-- NÚMEROS ANIMADOS NO FUNDO (0 a 100) -->
+    <div id="numbers-bg"></div>
+
+    <div class="container">
+        <div id="start">
+            <h2>Quiz do Adam!</h2>
+            <p>Digite seu nome para começar:</p>
+            <input type="text" id="userName" placeholder="Seu nome aqui">
+            <button id="startBtn">Jogar!</button>
+        </div>
+        
+        <div id="quiz" style="display: none;">
+            <div id="question1" class="question active">
+                <h2 id="q1-title"></h2>
+                <div class="options">
+                    <button onclick="checkAnswer(1, '8')">8</button>
+                    <button onclick="checkAnswer(1, '9')">9</button>
+                    <button onclick="checkAnswer(1, '7')">7</button>
+                </div>
+                <div id="feedback1" class="animation"></div>
+            </div>
+            
+            <div id="question2" class="question">
+                <h2 id="q2-title"></h2>
+                <div class="options">
+                    <button onclick="checkAnswer(2, '5')">5 anos</button>
+                    <button onclick="checkAnswer(2, '4')">4 anos</button>
+                    <button onclick="checkAnswer(2, '6')">6 anos</button>
+                </div>
+                <div id="feedback2" class="animation"></div>
+            </div>
+            
+            <div id="question3" class="question">
+                <h2 id="q3-title"></h2>
+                <div class="options">
+                    <button onclick="checkAnswer(3, 'Em novembro')">Novembro</button>
+                    <button onclick="checkAnswer(3, 'Em outubro')">Outubro</button>
+                    <button onclick="checkAnswer(3, 'Em dezembro')">Dezembro</button>
+                </div>
+                <div id="feedback3" class="animation"></div>
+            </div>
+        </div>
+        
+        <div id="result"></div>
+        <div id="more-about">
+            <h2>Me Conheça Mais um Pouquinho!</h2>
+            <p>Oiê! <br> Eu sou um menino bem esperto! Gosto de números e de joguinhos que me fazem pensar. Às vezes eu caio e me machuco um pouquinho, mas tá tudo bem, porque ainda tô aprendendo!</p>
+            <p>Eu aprendi a ler quando tinha 2 aninhos, e depois aprendi umas coisinhas de matemática. Ah! E também sei um pouquinho de inglês!</p>
+            <p>Agora que você já sabe mais sobre mim, vem comer um pedaço do meu bolo!</p>
+            <p>No dia 08/11/2025, eu faço 5 aninhos!</p>
+            <p>O local será no Varandas Food Park <br> Clique Aqui: <a href="https://maps.app.goo.gl/dacMoupCPSiuhV1Q7" target="_blank" style="color:#e91e63; font-weight:bold;">Ver no Google Maps</a></p>
+        </div>
+    </div>
+
+    <!-- 1. Carregar Supabase PRIMEIRO -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- 2. Seu código (só depois!) -->
+    <script>
+        // === GERAR NÚMEROS ANIMADOS NO FUNDO (0 a 100) ===
+        document.addEventListener('DOMContentLoaded', function () {
+            const numbersContainer = document.getElementById('numbers-bg');
+            const colors = ['color-1','color-2','color-3','color-4','color-5','color-6','color-7','color-8','color-9','color-0'];
+
+            // === MÚSICA AUTOMÁTICA ===
+            const bgMusic = document.getElementById('bgMusic');
+            bgMusic.volume = 0.25;
+
+            // Desbloqueia áudio no primeiro clique (funciona em celular)
+            document.body.addEventListener('click', function unlock() {
+                bgMusic.play().catch(() => {});
+                document.body.removeEventListener('click', unlock);
+            }, { once: true });
+
+            for (let i = 0; i <= 100; i++) {
+                const num = document.createElement('div');
+                num.className = 'floating-number';
+                num.textContent = i;
+                num.style.top = Math.random() * 90 + '%';
+                num.style.left = Math.random() * 90 + '%';
+                num.style.fontSize = (Math.random() * 20 + 20) + 'px';
+                num.style.animationDelay = Math.random() * 5 + 's';
+                num.classList.add(colors[i % 10]);
+                numbersContainer.appendChild(num);
+            }
+
+            // === SEU CÓDIGO ORIGINAL (inalterado) ===
+            const { createClient } = supabase;
+            window.supabaseClient = createClient(
+                'https://dvdfwezltoxpuupeyafn.supabase.co',
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2ZGZ3ZXpsdG94cHV1cGV5YWZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NDIyMjEsImV4cCI6MjA3NzUxODIyMX0.J-l-k5HukbDuo8DFTyQiMXIZKEhckP4bMDVvBtNEs58'
+            );
+
+            let userName = '';
+            let currentQuestion = 1;
+            let score = 0;
+            const totalQuestions = 3;
+
+            const questions = {
+                1: { text: 'Qual é o dia do meu aniversário?', correct: '8' },
+                2: { text: 'Quantos anos eu vou fazer?', correct: '5' },
+                3: { text: 'Em que mês eu nasci?', correct: 'Em novembro' }
+            };
+
+            document.getElementById('startBtn').addEventListener('click', function () {
+                userName = document.getElementById('userName').value.trim();
+                if (!userName) {
+                    alert('Digite seu nome para começar!');
+                    return;
+                }
+                document.getElementById('start').style.display = 'none';
+                document.getElementById('quiz').style.display = 'block';
+                updateQuestionTitles();
+            });
+
+            function updateQuestionTitles() {
+                document.getElementById('q1-title').innerText = `${userName}, ${questions[1].text}`;
+                document.getElementById('q2-title').innerText = `${userName}, ${questions[2].text}`;
+                document.getElementById('q3-title').innerText = `${userName}, ${questions[3].text}`;
+            }
+
+            function createConfetti() {
+                const colors = ['#f1c40f', '#e74c3c', '#2ecc71', '#3498db', '#9b59b6', '#ff6b6b'];
+                for (let i = 0; i < 50; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.classList.add('confetti');
+                    
+                    // POSIÇÃO: começa no topo da tela
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.top = '-10px'; // Começa FORA da tela (acima)
+
+                    // TAMANHO E COR ALEATÓRIA
+                    const size = Math.random() * 8 + 6;
+                    confetti.style.width = size + 'px';
+                    confetti.style.height = size + 'px';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+
+                    // ANIMAÇÃO: cai do topo com duração e delay aleatórios
+                    const duration = Math.random() * 3 + 2;
+                    const delay = Math.random() * 1;
+                    confetti.style.animation = `confettiFall ${duration}s linear ${delay}s forwards`;
+
+                    document.body.appendChild(confetti);
+
+                    // Remove após a animação
+                    setTimeout(() => confetti.remove(), (duration + delay) * 1000 + 100);
+                }
+            }
+
+           window.checkAnswer = function (questionNum, answer) {
+                const correct = questions[questionNum].correct;
+                const feedback = document.getElementById(`feedback${questionNum}`);
+                const isCorrect = answer === correct;
+
+                if (isCorrect) {
+                    feedback.innerHTML = 'ACERTOU! <span class="stars">*****</span>';
+                    feedback.classList.add('correct');
+                    score++;
+                    createConfetti();
+                    playSound('correct'); // Descomente se quiser som
+                } else {
+                    feedback.innerHTML = 'ERROU!';
+                    feedback.classList.add('incorrect');
+                    playSound('wrong');
+                }
+
+                setTimeout(() => {
+                    feedback.innerHTML = '';
+                    feedback.classList.remove('correct', 'incorrect');
+                    nextQuestion();
+                }, 1800);
+            };
+
+            function nextQuestion() {
+                document.getElementById(`question${currentQuestion}`).classList.remove('active');
+                currentQuestion++;
+                if (currentQuestion <= totalQuestions) {
+                    setTimeout(() => {
+                        document.getElementById(`question${currentQuestion}`).classList.add('active');
+                    }, 300);
+                } else {
+                    setTimeout(showResult, 500);
+                }
+            }
+
+            async function showResult() {
+                document.getElementById('quiz').style.display = 'none';
+                const resultDiv = document.getElementById('result');
+                resultDiv.style.display = 'block';
+
+                const isWinner = score === totalQuestions;
+                resultDiv.innerHTML = `
+                    <h2>${userName}, você fez:</h2>
+                    <h1 style="font-size: 48px; color: ${isWinner ? '#2ecc71' : '#e74c3c'};">${score}/${totalQuestions}</h1>
+                    <p class="${isWinner ? 'winner' : 'loser'}">
+                        ${isWinner ? 'PARABÉNS! Você é um CAMPEÃO!' : 'Quase lá!'}
+                    </p>
+                `;
+
+                try {
+                    const { error } = await window.supabaseClient
+                        .from('quiz_scores')
+                        .insert([{ name: userName, score: score, created_at: new Date() }]);
+                    if (error) throw error;
+                } catch (err) {
+                    console.error('Erro ao salvar:', err);
+                }
+
+                setTimeout(() => {
+                    document.getElementById('more-about').style.display = 'block';
+                }, 1500);
+            }
+        });
+
+        // Função de som (opcional - descomente e adicione arquivos .mp3)
+        
+        function playSound(type) {
+            const audio = new Audio(type === 'correct' ? 'correct.mp3' : 'wrong.mp3');
+            audio.play();
+        }
+        
+    </script>    
+</body>
+</html>
